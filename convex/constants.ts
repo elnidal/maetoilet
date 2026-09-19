@@ -1,0 +1,2 @@
+export const NUDGE_AFTER_MINUTES = 8
+export const AUTO_RESET_AFTER_MINUTES = 30
