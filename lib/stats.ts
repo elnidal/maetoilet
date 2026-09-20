@@ -1,5 +1,15 @@
 import type { Doc } from "@/convex/_generated/dataModel"
 
+export function isToday(timestamp: number): boolean {
+  const now = new Date()
+  const d = new Date(timestamp)
+  return (
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate()
+  )
+}
+
 export function averageDurationMinutes(logs: Doc<"usageLogs">[]): number | null {
   const durations = logs.map((l) => l.durationMinutes).filter((d): d is number => d != null)
   if (durations.length === 0) return null

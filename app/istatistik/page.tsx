@@ -1,10 +1,11 @@
 "use client"
 
+import { useMemo, useState } from "react"
 import Link from "next/link"
 import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { HourlyChart } from "@/components/HourlyChart"
-import { badgesForVisitCount, hourlyCounts } from "@/lib/stats"
+import { badgesForVisitCount, hourlyCounts, isToday } from "@/lib/stats"
 
 type Aggregate = {
   userName: string
@@ -13,12 +14,20 @@ type Aggregate = {
   longest: number
 }
 
+type Range = "today" | "all"
+
 export default function StatsPage() {
-  const logs = useQuery(api.usageLogs.listCompleted)
-  const loading = logs === undefined
+  const allLogs = useQuery(api.usageLogs.listCompleted)
+  const loading = allLogs === undefined
+  const [range, setRange] = useState<Range>("today")
+
+  const logs = useMemo(() => {
+    if (!allLogs) return []
+    return range === "today" ? allLogs.filter((l) => isToday(l.enteredAt)) : allLogs
+  }, [allLogs, range])
 
   const byUser = new Map<string, Aggregate>()
-  for (const log of logs ?? []) {
+  for (const log of logs) {
     const name = log.userName?.trim() || "Anonim"
     const entry = byUser.get(name) ?? { userName: name, visits: 0, totalMinutes: 0, longest: 0 }
     entry.visits += 1
@@ -27,11 +36,12 @@ export default function StatsPage() {
     byUser.set(name, entry)
   }
   const leaderboard = [...byUser.values()].sort((a, b) => b.visits - a.visits)
-  const longestVisit = logs
-    ? [...logs].sort((a, b) => (b.durationMinutes ?? 0) - (a.durationMinutes ?? 0))[0]
-    : undefined
-  const autoResetCount = (logs ?? []).filter((l) => l.autoReset).length
-  const hourly = hourlyCounts(logs ?? [])
+  const longestVisit =
+    logs.length > 0
+      ? [...logs].sort((a, b) => (b.durationMinutes ?? 0) - (a.durationMinutes ?? 0))[0]
+      : undefined
+  const autoResetCount = logs.filter((l) => l.autoReset).length
+  const hourly = hourlyCounts(logs)
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-600 p-4">
@@ -44,12 +54,33 @@ export default function StatsPage() {
           <div className="w-14" />
         </div>
 
+        <div className="mb-4 flex justify-center gap-1 rounded-full bg-white/15 p-1">
+          {(
+            [
+              ["today", "Bugün"],
+              ["all", "Tüm Zamanlar"],
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              onClick={() => setRange(value)}
+              className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
+                range === value ? "bg-white text-indigo-700 shadow" : "text-white/80 hover:text-white"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         <div className="space-y-4">
           <div className="rounded-3xl bg-white p-6 shadow-2xl">
             {loading ? (
               <p className="text-center text-slate-500">Yükleniyor…</p>
-            ) : (logs ?? []).length === 0 ? (
-              <p className="text-center text-slate-500">Henüz kayıt yok. İlk hareketi sen yap!</p>
+            ) : logs.length === 0 ? (
+              <p className="text-center text-slate-500">
+                {range === "today" ? "Bugün henüz kayıt yok. İlk hareketi sen yap!" : "Henüz kayıt yok."}
+              </p>
             ) : (
               <div className="space-y-6">
                 {longestVisit && (
@@ -104,7 +135,7 @@ export default function StatsPage() {
             )}
           </div>
 
-          {!loading && (logs ?? []).length > 0 && (
+          {!loading && logs.length > 0 && (
             <div className="rounded-3xl bg-white p-6 shadow-2xl">
               <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-400">
                 Saatlere göre yoğunluk

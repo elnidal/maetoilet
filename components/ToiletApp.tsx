@@ -7,6 +7,8 @@ import { useMutation, useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { getExistingSubscription, isPushSupported, requestPushSubscription } from "@/lib/push-client"
 import { averageDurationMinutes } from "@/lib/stats"
+import { BellIcon } from "@/components/icons"
+import { InstallPromptBanner } from "@/components/InstallPromptBanner"
 
 const JOKES_AVAILABLE = [
   "Yol açık, hadi bakalım 🚀",
@@ -195,6 +197,7 @@ export function ToiletApp() {
       }`}
     >
       <div className="w-full max-w-md rounded-[2rem] bg-white/95 p-6 shadow-2xl backdrop-blur">
+        <InstallPromptBanner />
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-xl font-black tracking-tight text-slate-900">🚽 MAE Tuvalet</h1>
           <div className="flex items-center gap-2">
@@ -208,11 +211,11 @@ export function ToiletApp() {
               onClick={handleToggleNotifications}
               disabled={busy}
               title={notifOn ? "Bildirimleri kapat" : "Bildirimleri aç"}
-              className={`rounded-full p-2 text-sm transition ${
+              className={`rounded-full p-2 transition ${
                 notifOn ? "bg-indigo-100 text-indigo-600" : "bg-slate-100 text-slate-400"
               }`}
             >
-              {notifOn ? "🔔" : "🔕"}
+              <BellIcon muted={!notifOn} />
             </button>
           </div>
         </div>
