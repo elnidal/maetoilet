@@ -9,12 +9,20 @@ import { getExistingSubscription, isPushSupported, requestPushSubscription } fro
 import { averageDurationMinutes } from "@/lib/stats"
 import { BellIcon } from "@/components/icons"
 import { InstallPromptBanner } from "@/components/InstallPromptBanner"
+import { Toast, type ToastTone } from "@/components/Toast"
 
 const JOKES_AVAILABLE = [
   "Yol açık, hadi bakalım 🚀",
   "Taht boş, kral sensin 👑",
   "Şu an dünyanın en sakin yeri burası",
   "Fırsat bu fırsat!",
+  "Zil çalmadan yetiş 🔔",
+  "Bu sefer kimse önünü kesmez",
+  "Nöbetçi öğretmen bile bilmiyor, hadi git",
+  "Müdür bile şu an bu kadar özgür değil",
+  "İçeride hiç kimse yok, tam sana göre",
+  "Öğretmenler odası kadar sakin, hatta daha sakin",
+  "Bu fırsatı kaçırma, teneffüs kısa sürer",
 ]
 
 const JOKES_OCCUPIED = [
@@ -22,6 +30,12 @@ const JOKES_OCCUPIED = [
   "İçeride ciddi işler dönüyor olabilir",
   "Bekleme odasına hoş geldin",
   "Bu arada bir kahve alsan?",
+  "Zil çalarsa suç bizde değil",
+  "Nöbetçi öğretmen sırada, sen de sıraya gir",
+  "Bu kadar sabır dersin de yok herhalde",
+  "Koridor turu atmanın tam zamanı",
+  "İçeride kim var bilmiyoruz ama uzun sürüyor",
+  "Bir sonraki teneffüse kadar sürebilir (umarım sürmez)",
 ]
 
 function pick(arr: string[]) {
@@ -52,12 +66,23 @@ export function ToiletApp() {
   const [busy, setBusy] = useState(false)
   const [now, setNow] = useState<number | null>(null)
   const [browserSub, setBrowserSub] = useState<PushSubscription | null>(null)
+  const [toast, setToast] = useState<{ message: string; tone: ToastTone } | null>(null)
   const wasOccupiedRef = useRef<boolean | null>(null)
 
   const subscriptionDoc = useQuery(
     api.pushSubscriptions.findByEndpoint,
     browserSub ? { endpoint: browserSub.endpoint } : "skip",
   )
+
+  function showToast(message: string, tone: ToastTone = "error") {
+    setToast({ message, tone })
+  }
+
+  useEffect(() => {
+    if (!toast) return
+    const id = setTimeout(() => setToast(null), 3200)
+    return () => clearTimeout(id)
+  }, [toast])
 
   useEffect(() => {
     if (isPushSupported()) {
@@ -98,7 +123,7 @@ export function ToiletApp() {
       await enterMutation({ userName, subscriptionId: subscriptionDoc?._id })
     } catch (err) {
       const msg = err instanceof Error ? err.message : ""
-      alert(
+      showToast(
         msg.includes("already_occupied")
           ? "Birileri tam senden önce girdi galiba 😅"
           : "Bir şeyler ters gitti, tekrar dene.",
@@ -112,8 +137,9 @@ export function ToiletApp() {
     setBusy(true)
     try {
       await exitMutation({})
+      showToast("Çıkış kaydedildi, sağ ol! 👋", "success")
     } catch {
-      alert("Çıkış kaydedilemedi, tekrar dene.")
+      showToast("Çıkış kaydedilemedi, tekrar dene.")
     } finally {
       setBusy(false)
     }
@@ -126,6 +152,7 @@ export function ToiletApp() {
         await unsubscribeMutation({ endpoint: browserSub.endpoint })
         await browserSub.unsubscribe()
         setBrowserSub(null)
+        showToast("Bildirimler kapatıldı", "success")
       } else {
         const sub = await requestPushSubscription()
         const json = sub.toJSON()
@@ -136,10 +163,11 @@ export function ToiletApp() {
           userName,
         })
         setBrowserSub(sub)
+        showToast("Bildirimler açıldı 🔔", "success")
       }
     } catch (err) {
       console.error(err)
-      alert("Bildirim izni alınamadı. Tarayıcı/telefon ayarlarından izin verildiğinden emin ol.")
+      showToast("Bildirim izni alınamadı. Tarayıcı/telefon ayarlarından izin verildiğinden emin ol.")
     } finally {
       setBusy(false)
     }
@@ -147,12 +175,13 @@ export function ToiletApp() {
 
   async function handleJoinQueue() {
     if (!userName.trim()) {
-      alert("Sıraya girmek için önce ismini yaz.")
+      showToast("Sıraya girmek için önce ismini yaz.")
       return
     }
     setBusy(true)
     try {
       await joinQueueMutation({ userName, subscriptionId: subscriptionDoc?._id })
+      showToast("Sıraya eklendin, boşalınca haber veririz 🎉", "success")
     } finally {
       setBusy(false)
     }
@@ -170,8 +199,9 @@ export function ToiletApp() {
     setBusy(true)
     try {
       await forceResetMutation({})
+      showToast("Durum sıfırlandı", "success")
     } catch {
-      alert("Sıfırlanamadı, tekrar dene.")
+      showToast("Sıfırlanamadı, tekrar dene.")
     } finally {
       setBusy(false)
     }
@@ -199,7 +229,10 @@ export function ToiletApp() {
       <div className="w-full max-w-md rounded-[2rem] bg-white/95 p-6 shadow-2xl backdrop-blur">
         <InstallPromptBanner />
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-xl font-black tracking-tight text-slate-900">🚽 MAE Tuvalet</h1>
+          <h1 className="flex items-center gap-2 text-xl font-black tracking-tight text-slate-900">
+            <span className="text-3xl leading-none">🚽</span>
+            MAE Tuvalet
+          </h1>
           <div className="flex items-center gap-2">
             <Link
               href="/istatistik"
@@ -211,7 +244,7 @@ export function ToiletApp() {
               onClick={handleToggleNotifications}
               disabled={busy}
               title={notifOn ? "Bildirimleri kapat" : "Bildirimleri aç"}
-              className={`rounded-full p-2 transition ${
+              className={`rounded-full p-2.5 transition ${
                 notifOn ? "bg-indigo-100 text-indigo-600" : "bg-slate-100 text-slate-400"
               }`}
             >
@@ -227,7 +260,9 @@ export function ToiletApp() {
               : "bg-gradient-to-br from-rose-500 to-orange-500"
           }`}
         >
-          <div className="mb-3 animate-bounce text-6xl">{isAvailable ? "✅" : "🚫"}</div>
+          <div className="mb-3 animate-bounce text-7xl drop-shadow-md">
+            {isAvailable ? "✅" : "🚫"}
+          </div>
           <h2 className="mb-1 text-3xl font-black text-white">{isAvailable ? "Müsait" : "Dolu"}</h2>
           <p className="text-sm font-medium text-white/90">{joke}</p>
 
@@ -257,7 +292,7 @@ export function ToiletApp() {
             <button
               onClick={handleEnter}
               disabled={busy}
-              className="h-12 w-full rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 font-bold text-white shadow-lg transition hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50"
+              className="h-12 w-full rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 font-bold text-white shadow-lg transition hover:from-indigo-600 hover:to-purple-700 active:scale-[0.98] disabled:opacity-50"
             >
               {busy ? "İşleniyor…" : "Giriş Yap"}
             </button>
@@ -267,7 +302,7 @@ export function ToiletApp() {
             <button
               onClick={handleExit}
               disabled={busy}
-              className="h-12 w-full rounded-2xl bg-gradient-to-r from-rose-500 to-orange-500 font-bold text-white shadow-lg transition hover:from-rose-600 hover:to-orange-600 disabled:opacity-50"
+              className="h-12 w-full rounded-2xl bg-gradient-to-r from-rose-500 to-orange-500 font-bold text-white shadow-lg transition hover:from-rose-600 hover:to-orange-600 active:scale-[0.98] disabled:opacity-50"
             >
               {busy ? "İşleniyor…" : "Çıkış Yap"}
             </button>
@@ -306,7 +341,7 @@ export function ToiletApp() {
                 <button
                   onClick={handleJoinQueue}
                   disabled={busy}
-                  className="h-10 rounded-xl bg-slate-800 px-4 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-50"
+                  className="h-10 rounded-xl bg-slate-800 px-4 text-sm font-semibold text-white hover:bg-slate-700 active:scale-[0.98] disabled:opacity-50"
                 >
                   Sıraya gir
                 </button>
@@ -327,6 +362,8 @@ export function ToiletApp() {
           Son güncelleme: {status ? new Date(status.lastUpdated).toLocaleTimeString("tr-TR") : "—"}
         </p>
       </div>
+
+      {toast && <Toast message={toast.message} tone={toast.tone} />}
     </main>
   )
 }

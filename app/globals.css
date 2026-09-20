@@ -23,3 +23,17 @@ body {
     Arial,
     sans-serif;
 }
+
+@keyframes toast-in {
+  from {
+    transform: translateY(14px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.animate-toast-in {
+  animation: toast-in 220ms ease-out;
+}
