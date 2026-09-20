@@ -7,15 +7,26 @@ import { fileURLToPath } from "url"
 const outDir = new URL("../public/icons/", import.meta.url)
 mkdirSync(outDir, { recursive: true })
 
-// Basit geometrik tuvalet silueti — emoji font'a bağımlı değil, her ortamda
-// aynı render eder. Şekil merkez ~66% güvenli alan içinde (maskable ikon için).
+// Basit geometrik tuvalet silueti + şirin bir yüz — emoji font'a bağımlı
+// değil, her ortamda aynı render eder. Şekil merkez ~66% güvenli alan
+// içinde (maskable ikon için).
 const glyph = `
 <g fill="#ffffff">
   <rect x="196" y="100" width="120" height="90" rx="18"/>
   <rect x="156" y="190" width="200" height="32" rx="16"/>
   <ellipse cx="256" cy="300" rx="100" ry="100"/>
   <rect x="226" y="380" width="60" height="30" rx="10"/>
-</g>`
+</g>
+<g fill="#f9a8c9" opacity="0.9">
+  <circle cx="200" cy="308" r="13"/>
+  <circle cx="312" cy="308" r="13"/>
+</g>
+<g fill="#312e81">
+  <circle cx="228" cy="282" r="12"/>
+  <circle cx="284" cy="282" r="12"/>
+</g>
+<path d="M 226 316 Q 256 338 286 316" stroke="#312e81" stroke-width="11"
+      stroke-linecap="round" fill="none"/>`
 
 const gradientDef = `
 <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
