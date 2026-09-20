@@ -1,4 +1,4 @@
-# 🚽 MAE Tuvalet
+# 🚽 Taharet (MAE Tuvalet)
 
 MAE okulundaki tek erkek öğretmen tuvaletinin anlık doluluk durumunu takip eden, kim
 girdiğinde/çıktığında herkese **push bildirimi** gönderen, telefonun ana ekranına

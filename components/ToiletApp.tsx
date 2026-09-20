@@ -232,7 +232,7 @@ export function ToiletApp() {
         <div className="mb-6 flex items-center justify-between">
           <h1 className="flex items-center gap-2 text-xl font-black tracking-tight text-slate-900">
             <span className="text-3xl leading-none">🚽</span>
-            MAE Tuvalet
+            Taharet
           </h1>
           <div className="flex items-center gap-2">
             <Link

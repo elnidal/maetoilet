@@ -4,12 +4,12 @@ import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister"
 import { ConvexClientProvider } from "@/components/ConvexClientProvider"
 
 export const metadata: Metadata = {
-  title: "MAE Tuvalet",
+  title: "Taharet",
   description: "MAE öğretmenler tuvaleti — kim içeride, ne zaman boşalıyor, anında haber al.",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "MAE Tuvalet",
+    title: "Taharet",
   },
   icons: {
     icon: [
