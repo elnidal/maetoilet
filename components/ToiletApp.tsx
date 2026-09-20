@@ -19,7 +19,7 @@ const JOKES_AVAILABLE = [
   "Zil çalmadan yetiş 🔔",
   "Bu sefer kimse önünü kesmez",
   "Nöbetçi öğretmen bile bilmiyor, hadi git",
-  "Müdür bile şu an bu kadar özgür değil",
+  "Kuşlar bile bu kadar özgür değil",
   "İçeride hiç kimse yok, tam sana göre",
   "Öğretmenler odası kadar sakin, hatta daha sakin",
   "Bu fırsatı kaçırma, teneffüs kısa sürer",
@@ -36,6 +36,7 @@ const JOKES_OCCUPIED = [
   "Koridor turu atmanın tam zamanı",
   "İçeride kim var bilmiyoruz ama uzun sürüyor",
   "Bir sonraki teneffüse kadar sürebilir (umarım sürmez)",
+  "Mutluluğun yolu tuvalette uzun kalmaktan geçer",
 ]
 
 function pick(arr: string[]) {
